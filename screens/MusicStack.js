@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
   fileContainer: {
     height: 120,
-    backgroundColor: "rgba(255,255,255,0.8)",
+    backgroundColor: "lightgrey",
     borderRadius: 10
   },
   textInline: {
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   },
   containerTitlePrefix: {
     fontSize: 32,
-    color: "white"
+    color: "black"
   },
   containerTitleSuffix: {
     fontSize: 32,
