@@ -23,9 +23,9 @@ export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
     this.db = firebase.firestore();
-    this.counter = 0;
     this.state = {
       announcements: [],
+      announcementsRendering: [],
       currentAnnouncement: null,
       popupVisible: false,
       addItemVisible: false
@@ -86,10 +86,13 @@ export default class HomeScreen extends React.Component {
   // Announcement rendering method. Render a list of announcements stored in array.
   // If the array is empty (no available announcements), then blank view with alert is rendered
   _renderAnnouncements = () => {
-    if (this.state.announcements && this.state.announcements.length) {
+    if (
+      this.state.announcementsRendering &&
+      this.state.announcementsRendering.length
+    ) {
       return (
         <ScrollView style={styles.content}>
-          {this.state.announcements}
+          {this.state.announcementsRendering}
         </ScrollView>
       );
     }
@@ -108,18 +111,25 @@ export default class HomeScreen extends React.Component {
       .collection("announcements")
       .get()
       .then(docs => {
+        var counter = docs.size - 1;
         docs.forEach(doc => {
-          this.setState(prevState => ({
+          var _title = doc.data().title;
+          var _content = doc.data().content;
+          var _date = doc.data().date;
+          this.setState({
             announcements: [
-              ...prevState.announcements,
-              this._constructAnnouncement(
-                this.counter++,
-                doc.data().title,
-                doc.data().content,
-                doc.data().date
-              )
+              {
+                title: _title,
+                content: _content,
+                date: _date
+              },
+              ...this.state.announcements
+            ],
+            announcementsRendering: [
+              this._constructAnnouncement(counter--, _title, _content, _date),
+              ...this.state.announcementsRendering
             ]
-          }));
+          });
         });
       });
   };
@@ -141,7 +151,6 @@ export default class HomeScreen extends React.Component {
     this.setState({
       currentAnnouncement: this.state.announcements[id]
     });
-    console.log("announcement ", this.state.announcements[0]);
     this._toggleAnnouncementPopUp();
   };
 
