@@ -16,7 +16,10 @@ export default class Announcement extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>{this.props.title}</Text>
+        <Text style={styles.title}>
+          {this.props.title}
+          {this.props.announcementId}
+        </Text>
         {/* <Text style={styles.content}>{this.props.date}</Text> */}
         <Text style={styles.content}>
           {this.sliceContent(this.props.content)}

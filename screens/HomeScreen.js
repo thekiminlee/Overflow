@@ -23,11 +23,10 @@ export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
     this.db = firebase.firestore();
+    this.counter = 0;
     this.state = {
       announcements: [],
       currentAnnouncement: null,
-      key: 0,
-      announcementCounter: 0,
       popupVisible: false,
       addItemVisible: false
     };
@@ -84,50 +83,13 @@ export default class HomeScreen extends React.Component {
     );
   }
 
-  // Database access. Retrieves data from firestore and stores them in array
-  _getAnnouncements = () => {
-    this.db
-      .collection("announcements")
-      .get()
-      .then(docs => {
-        docs.forEach(doc => {
-          this.setState(prevState => ({
-            announcements: [
-              ...prevState.announcements,
-              {
-                title: doc.data().title,
-                content: doc.data().content,
-                data: doc.data().date
-              }
-            ]
-          }));
-        });
-      });
-  };
-
   // Announcement rendering method. Render a list of announcements stored in array.
   // If the array is empty (no available announcements), then blank view with alert is rendered
-  _renderAnnouncements() {
+  _renderAnnouncements = () => {
     if (this.state.announcements && this.state.announcements.length) {
       return (
         <ScrollView style={styles.content}>
-          {this.state.announcements.map(item => {
-            return (
-              <TouchableOpacity
-                onPress={() =>
-                  this._retrieveAnnouncement(this.state.announcementCounter)
-                }
-                key={this.state.key++}
-              >
-                <Announcement
-                  title={item.title}
-                  content={item.content}
-                  date={item.date}
-                  announcementId={this.state.announcementCounter++}
-                />
-              </TouchableOpacity>
-            );
-          })}
+          {this.state.announcements}
         </ScrollView>
       );
     }
@@ -138,12 +100,48 @@ export default class HomeScreen extends React.Component {
         </Text>
       </View>
     );
+  };
+
+  // Database access. Retrieves data from firestore and stores them in array
+  _getAnnouncements = () => {
+    this.db
+      .collection("announcements")
+      .get()
+      .then(docs => {
+        docs.forEach(doc => {
+          this.setState(prevState => ({
+            announcements: [
+              ...prevState.announcements,
+              this._constructAnnouncement(
+                this.counter++,
+                doc.data().title,
+                doc.data().content,
+                doc.data().date
+              )
+            ]
+          }));
+        });
+      });
+  };
+
+  _constructAnnouncement(id, _title, _content, _date) {
+    return (
+      <TouchableOpacity onPress={() => this._retrieveAnnouncement(id)} key={id}>
+        <Announcement
+          title={_title}
+          content={_content}
+          date={_date}
+          announcementId={id}
+        />
+      </TouchableOpacity>
+    );
   }
 
-  _retrieveAnnouncement = item => {
+  _retrieveAnnouncement = id => {
     this.setState({
-      currentAnnouncement: this.state.announcements[item]
+      currentAnnouncement: this.state.announcements[id]
     });
+    console.log("announcement ", this.state.announcements[0]);
     this._toggleAnnouncementPopUp();
   };
 
