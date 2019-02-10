@@ -106,6 +106,8 @@ export default class HomeScreen extends React.Component {
   };
 
   // Database access. Retrieves data from firestore and stores them in array
+  //   - First array stores raw data from DB
+  //   - Second array stores rendering components
   _getAnnouncements = () => {
     this.db
       .collection("announcements")
@@ -134,6 +136,7 @@ export default class HomeScreen extends React.Component {
       });
   };
 
+  // Creates a single Announcement touchable component for rendering
   _constructAnnouncement(id, _title, _content, _date) {
     return (
       <TouchableOpacity onPress={() => this._retrieveAnnouncement(id)} key={id}>
@@ -147,6 +150,7 @@ export default class HomeScreen extends React.Component {
     );
   }
 
+  // When user touches an announcement, sets corresponding announcement as prop for popup
   _retrieveAnnouncement = id => {
     this.setState({
       currentAnnouncement: this.state.announcements[id]

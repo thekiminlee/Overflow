@@ -16,19 +16,16 @@ export default class Announcement extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>
-          {this.props.title}
-          {this.props.announcementId}
-        </Text>
+        <Text style={styles.title}>{this.props.title}</Text>
         {/* <Text style={styles.content}>{this.props.date}</Text> */}
         <Text style={styles.content}>
-          {this.sliceContent(this.props.content)}
+          {this._sliceContent(this.props.content)}
         </Text>
       </View>
     );
   }
 
-  sliceContent(content) {
+  _sliceContent(content) {
     if (content.length > 70) {
       return content.substr(0, 70) + "......";
     }
@@ -39,7 +36,7 @@ export default class Announcement extends React.Component {
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    height: 50,
+    height: 70,
     borderBottomWidth: 0.5,
     borderColor: "lightgrey",
     justifyContent: "center"
