@@ -14,6 +14,7 @@ import "firebase/firestore";
 import Announcement from "../components/home/Announcement";
 import AnnouncementPopUp from "../components/home/AnnouncementPopUp";
 import AnnouncementAdd from "../components/home/AnnouncementAdd";
+import AddButton from "../components/AddButton";
 
 export default class HomeScreen extends React.Component {
   static navigationOptions = {
@@ -78,6 +79,9 @@ export default class HomeScreen extends React.Component {
         </View>
         <View style={styles.buttonContainer}>
           <View style={styles.button} />
+        </View>
+        <View>
+          <AddButton onPressFunction={this._toggleAnnouncementAdd} />
         </View>
       </View>
     );
