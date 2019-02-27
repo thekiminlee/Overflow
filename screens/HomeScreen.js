@@ -6,7 +6,8 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  Alert
 } from "react-native";
 import Modal from "react-native-modal";
 import firebase from "firebase";
@@ -23,19 +24,20 @@ export default class HomeScreen extends React.Component {
 
   constructor(props) {
     super(props);
-    this.db = firebase.firestore();
+    this.db = firebase.firestore().collection("announcements");
     this.state = {
       announcements: [],
       announcementsRendering: [],
       currentAnnouncement: null,
       popupVisible: false,
-      addItemVisible: false
+      addItemVisible: false,
+      refreshCount: 1
     };
 
     //this.getAnnouncements = this.getAnnouncements.bind(this); // binding for setState. Use other binding method
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this._getAnnouncements(); // retrieves all the announcements on loading
   }
 
@@ -54,13 +56,19 @@ export default class HomeScreen extends React.Component {
         </Modal>
 
         {/* Modal for announcement add. Default visiblity is set to false */}
+
         <Modal
           style={styles.popup}
           isVisible={this.state.addItemVisible}
           onBackdropPress={this._toggleAnnouncementAdd}
           onBackButtonPress={this._toggleAnnouncementAdd}
         >
-          <AnnouncementAdd />
+          <AnnouncementAdd
+            onPressFunction={this._addAnnouncement}
+            toggleFunction={this._toggleAnnouncementAdd}
+            database={this.db}
+            refresh={this._refreshPage}
+          />
         </Modal>
 
         {/* Main content */}
@@ -77,11 +85,13 @@ export default class HomeScreen extends React.Component {
         <View style={styles.contentContainer}>
           {this._renderAnnouncements()}
         </View>
-        <View style={styles.buttonContainer}>
-          <View style={styles.button} />
-        </View>
-        <View>
-          <AddButton onPressFunction={this._toggleAnnouncementAdd} />
+        <View style={styles.optionContainer}>
+          <View style={styles.option}>
+            <AddButton
+              msg={"+"}
+              onPressFunction={this._toggleAnnouncementAdd}
+            />
+          </View>
         </View>
       </View>
     );
@@ -113,31 +123,28 @@ export default class HomeScreen extends React.Component {
   //   - First array stores raw data from DB
   //   - Second array stores rendering components
   _getAnnouncements = () => {
-    this.db
-      .collection("announcements")
-      .get()
-      .then(docs => {
-        var counter = docs.size - 1;
-        docs.forEach(doc => {
-          var _title = doc.data().title;
-          var _content = doc.data().content;
-          var _date = doc.data().date;
-          this.setState({
-            announcements: [
-              {
-                title: _title,
-                content: _content,
-                date: _date
-              },
-              ...this.state.announcements
-            ],
-            announcementsRendering: [
-              this._constructAnnouncement(counter--, _title, _content, _date),
-              ...this.state.announcementsRendering
-            ]
-          });
+    this.db.get().then(docs => {
+      var counter = docs.size - 1;
+      docs.forEach(doc => {
+        var _title = doc.data().title;
+        var _content = doc.data().content;
+        var _date = doc.data().date;
+        this.setState({
+          announcements: [
+            {
+              title: _title,
+              content: _content,
+              date: _date
+            },
+            ...this.state.announcements
+          ],
+          announcementsRendering: [
+            this._constructAnnouncement(counter--, _title, _content, _date),
+            ...this.state.announcementsRendering
+          ]
         });
       });
+    });
   };
 
   // Creates a single Announcement touchable component for rendering
@@ -160,6 +167,29 @@ export default class HomeScreen extends React.Component {
       currentAnnouncement: this.state.announcements[id]
     });
     this._toggleAnnouncementPopUp();
+  };
+
+  // updates the announcement firestore with random generated document id
+  //    update occurs on AnnouncementAdd component. Pass all the necessary props to the component
+  _addAnnouncement(_title, _content, toggle, db, hashGenerator, refresh) {
+    if (_title == "" || _content == "") {
+      Alert.alert("Warning", "Title and content cannot be empty", [
+        { text: "OK", onPress: () => console.log("No title and content") }
+      ]);
+    } else {
+      db.doc(hashGenerator()).set({
+        title: _title,
+        content: _content,
+        date: Date.now()
+      });
+      toggle();
+      refresh();
+    }
+  }
+
+  // page refresher
+  _refreshPage = () => {
+    this.setState({ refreshCount: this.state.refreshCount++ });
   };
 
   // Modal visibility control functions
@@ -201,9 +231,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "lightgrey",
-    width: "90%",
-    marginTop: 10,
-    marginBottom: 10
+    width: "90%"
   },
   contentEmpty: {
     flex: 1,
@@ -211,13 +239,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "lightgrey",
     width: "90%",
-    marginTop: 10,
-    marginBottom: 10,
     justifyContent: "center",
     alignItems: "center"
   },
   popup: {
     justifyContent: "center",
+    alignItems: "center"
+  },
+  option: {
+    width: "90%",
+    flexDirection: "row",
+    justifyContent: "flex-end"
+  },
+  optionContainer: {
+    marginTop: 10,
+    marginBottom: 10,
     alignItems: "center"
   }
 });
