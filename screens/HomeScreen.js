@@ -67,7 +67,6 @@ export default class HomeScreen extends React.Component {
             onPressFunction={this._addAnnouncement}
             toggleFunction={this._toggleAnnouncementAdd}
             database={this.db}
-            refresh={this._refreshPage}
           />
         </Modal>
 
@@ -119,29 +118,28 @@ export default class HomeScreen extends React.Component {
     );
   };
 
-  // Database access. Retrieves data from firestore and stores them in array
-  //   - First array stores raw data from DB
-  //   - Second array stores rendering components
   _getAnnouncements = () => {
-    this.db.get().then(docs => {
+    this.db.orderBy("date", "asc").onSnapshot(docs => {
       var counter = docs.size - 1;
+      _announcements = [];
+      _announcementsRendering = [];
       docs.forEach(doc => {
         var _title = doc.data().title;
         var _content = doc.data().content;
         var _date = doc.data().date;
+        // add elements to temporary announcement array
+        _announcements.unshift({
+          title: _title,
+          content: _content,
+          date: _date
+        });
+        // add elements to temporary announcement rendering array
+        _announcementsRendering.unshift(
+          this._constructAnnouncement(counter--, _title, _content, _date)
+        );
         this.setState({
-          announcements: [
-            {
-              title: _title,
-              content: _content,
-              date: _date
-            },
-            ...this.state.announcements
-          ],
-          announcementsRendering: [
-            this._constructAnnouncement(counter--, _title, _content, _date),
-            ...this.state.announcementsRendering
-          ]
+          announcements: _announcements,
+          announcementsRendering: _announcementsRendering
         });
       });
     });
@@ -171,7 +169,7 @@ export default class HomeScreen extends React.Component {
 
   // updates the announcement firestore with random generated document id
   //    update occurs on AnnouncementAdd component. Pass all the necessary props to the component
-  _addAnnouncement(_title, _content, toggle, db, hashGenerator, refresh) {
+  _addAnnouncement(_title, _content, toggle, db, hashGenerator) {
     if (_title == "" || _content == "") {
       Alert.alert("Warning", "Title and content cannot be empty", [
         { text: "OK", onPress: () => console.log("No title and content") }
@@ -180,17 +178,11 @@ export default class HomeScreen extends React.Component {
       db.doc(hashGenerator()).set({
         title: _title,
         content: _content,
-        date: Date.now()
+        date: new Date()
       });
       toggle();
-      refresh();
     }
   }
-
-  // page refresher
-  _refreshPage = () => {
-    this.setState({ refreshCount: this.state.refreshCount++ });
-  };
 
   // Modal visibility control functions
   _toggleAnnouncementPopUp = () =>

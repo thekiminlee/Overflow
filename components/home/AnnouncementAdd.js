@@ -46,8 +46,7 @@ export default class AnnouncementAdd extends React.Component {
                   this.state.content,
                   this.props.toggleFunction,
                   this.props.database,
-                  this._generateHash,
-                  this.props.refresh
+                  this._generateHash
                 )
               }
             >
